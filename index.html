@@ -9,8 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Importar Chart.js -->
     <style>
-        /* Diseño anterior más limpio y ordenado */
+        /* Diseño limpio y ordenado */
         body {
             font-family: Arial, sans-serif;
             background-color: #f9fafb;
@@ -55,13 +56,20 @@
             padding: 20px;
             border-radius: 8px;
         }
-        /* Estilo para la tarjeta de estadísticas */
         .stats-container {
             margin-top: 20px;
+        }
+        /* Estilo para el gráfico */
+        canvas {
+            width: 100%;
+            height: 400px;
         }
     </style>
 </head>
 <body>
+
+<!-- Título de la página -->
+<h1 style="text-align: center; padding: 20px; background-color: #4CAF50; color: white;">Registro de Fans</h1>
 
 <div class="container">
     <!-- Formulario de registro de fans -->
@@ -83,13 +91,12 @@
         </form>
     </div>
 
-    <!-- Contenedor de estadísticas -->
+    <!-- Contenedor para estadísticas visuales -->
     <div class="stats-container">
         <div class="stats-card">
             <h2>📊 Estadísticas</h2>
-            <p id="estadisticasTotal"></p>
-            <p id="estadisticasUbicacion"></p>
-            <p id="estadisticasEdad"></p>
+            <!-- Gráfico de estadísticas -->
+            <canvas id="estadisticasChart"></canvas>
         </div>
     </div>
 </div>
@@ -146,7 +153,7 @@
         });
     });
 
-    // Función para mostrar estadísticas
+    // Función para mostrar estadísticas con Chart.js
     async function mostrarEstadisticas() {
         const fanRef = db.collection("fans");
         const snapshot = await fanRef.get();
@@ -168,7 +175,35 @@
             fansPorEdad[edad] = (fansPorEdad[edad] || 0) + 1;
         });
 
-        // Mostrar las estadísticas
+        // Mostrar las estadísticas visualmente
+        const ubicaciones = Object.keys(fansPorUbicacion);
+        const edades = Object.keys(fansPorEdad);
+        
+        // Crear los gráficos con Chart.js
+        const ctx = document.getElementById('estadisticasChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',  // Gráfico de barras
+            data: {
+                labels: [...ubicaciones, ...edades], // Unimos las ubicaciones y edades
+                datasets: [{
+                    label: 'Fans por Ubicación y Edad',
+                    data: [...Object.values(fansPorUbicacion), ...Object.values(fansPorEdad)],
+                    backgroundColor: '#4CAF50',
+                    borderColor: '#388E3C',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Mostrar estadísticas básicas
         document.getElementById("estadisticasTotal").innerText = `Total de Fans: ${totalFans}`;
         document.getElementById("estadisticasUbicacion").innerText = `Fans por Ubicación: ${JSON.stringify(fansPorUbicacion)}`;
         document.getElementById("estadisticasEdad").innerText = `Fans por Edad: ${JSON.stringify(fansPorEdad)}`;
@@ -180,4 +215,3 @@
 
 </body>
 </html>
-
