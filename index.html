@@ -5,12 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Fans</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"></script>
 </head>
 <body class="bg-gray-900 text-white p-4">
 
-    <div class="max-w-lg mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
+    <!-- Contenedor de inicio de sesión / registro -->
+    <div id="authContainer" class="max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-center mb-4">🔑 Acceso de Fans</h1>
+        <input type="email" id="authEmail" placeholder="Correo electrónico" class="w-full p-2 rounded bg-gray-700 text-white mb-2">
+        <input type="password" id="authPassword" placeholder="Contraseña" class="w-full p-2 rounded bg-gray-700 text-white mb-2">
+        <button id="loginBtn" class="w-full bg-green-500 p-2 rounded-lg hover:bg-green-600">Iniciar Sesión</button>
+        <button id="registerBtn" class="w-full bg-blue-500 p-2 rounded-lg hover:bg-blue-600 mt-2">Registrarse</button>
+    </div>
+
+    <!-- Contenedor principal de la app (oculto por defecto) -->
+    <div id="appContainer" class="hidden max-w-lg mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
         <h1 class="text-2xl font-bold text-center mb-4">📋 Lista de Fans</h1>
+        <button id="logoutBtn" class="bg-red-500 p-2 rounded-lg w-full mb-4">Cerrar Sesión</button>
 
         <form id="fanForm" class="space-y-4">
             <input type="text" id="nombre" placeholder="Nombre" class="w-full p-2 rounded bg-gray-700 text-white">
@@ -32,7 +42,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBCunx3qWVfoYj_8Sydwo9uWKLq0DdOj2M",
@@ -46,26 +57,68 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth();
 
+        const authContainer = document.getElementById("authContainer");
+        const appContainer = document.getElementById("appContainer");
         const fanForm = document.getElementById("fanForm");
         const listaFans = document.getElementById("listaFans");
 
+        const loginBtn = document.getElementById("loginBtn");
+        const registerBtn = document.getElementById("registerBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+
+        loginBtn.addEventListener("click", () => {
+            const email = document.getElementById("authEmail").value;
+            const password = document.getElementById("authPassword").value;
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => console.log("Sesión iniciada"))
+                .catch(err => alert("Error: " + err.message));
+        });
+
+        registerBtn.addEventListener("click", () => {
+            const email = document.getElementById("authEmail").value;
+            const password = document.getElementById("authPassword").value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(() => alert("Registro exitoso, ahora inicia sesión"))
+                .catch(err => alert("Error: " + err.message));
+        });
+
+        logoutBtn.addEventListener("click", () => {
+            signOut(auth);
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authContainer.classList.add("hidden");
+                appContainer.classList.remove("hidden");
+                cargarFans(user.uid);
+            } else {
+                authContainer.classList.remove("hidden");
+                appContainer.classList.add("hidden");
+            }
+        });
+
         fanForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return alert("Debes iniciar sesión");
+
             const nombre = document.getElementById("nombre").value;
             const correo = document.getElementById("correo").value;
             const intereses = Array.from(document.querySelectorAll(".interes:checked")).map(el => el.value);
 
             if (nombre && correo) {
-                await addDoc(collection(db, "fans"), { nombre, correo, intereses });
+                await addDoc(collection(db, "fans"), { nombre, correo, intereses, uid: user.uid });
                 fanForm.reset();
-                cargarFans();
+                cargarFans(user.uid);
             }
         });
 
-        async function cargarFans() {
+        async function cargarFans(userId) {
             listaFans.innerHTML = "";
-            const querySnapshot = await getDocs(collection(db, "fans"));
+            const q = query(collection(db, "fans"), where("uid", "==", userId));
+            const querySnapshot = await getDocs(q);
             querySnapshot.forEach((doc) => {
                 const { nombre, correo, intereses } = doc.data();
                 const li = document.createElement("li");
@@ -78,11 +131,10 @@
 
         async function eliminarFan(id) {
             await deleteDoc(doc(db, "fans", id));
-            cargarFans();
+            cargarFans(auth.currentUser.uid);
         }
 
         window.eliminarFan = eliminarFan;
-        cargarFans();
     </script>
 
 </body>
