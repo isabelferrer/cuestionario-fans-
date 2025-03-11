@@ -25,6 +25,16 @@
         <form id="fanForm" class="space-y-4">
             <input type="text" id="nombre" placeholder="Nombre" class="w-full p-2 rounded bg-gray-700 text-white">
             <input type="email" id="correo" placeholder="Correo electrónico" class="w-full p-2 rounded bg-gray-700 text-white">
+            <input type="text" id="telefono" placeholder="Teléfono" class="w-full p-2 rounded bg-gray-700 text-white">
+            <input type="text" id="ubicacion" placeholder="Ubicación" class="w-full p-2 rounded bg-gray-700 text-white">
+            <input type="number" id="edad" placeholder="Edad" class="w-full p-2 rounded bg-gray-700 text-white">
+
+            <fieldset>
+                <legend class="text-lg">Sexo:</legend>
+                <label><input type="radio" name="sexo" value="Masculino" class="sexo"> Masculino</label>
+                <label><input type="radio" name="sexo" value="Femenino" class="sexo"> Femenino</label>
+                <label><input type="radio" name="sexo" value="Otro" class="sexo"> Otro</label>
+            </fieldset>
             
             <fieldset>
                 <legend class="text-lg">Selecciona tus intereses:</legend>
@@ -90,10 +100,12 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
+                // Mostrar la app cuando el usuario está autenticado
                 authContainer.classList.add("hidden");
                 appContainer.classList.remove("hidden");
                 cargarFans(user.uid);
             } else {
+                // Mostrar el formulario de autenticación si no hay usuario
                 authContainer.classList.remove("hidden");
                 appContainer.classList.add("hidden");
             }
@@ -106,10 +118,14 @@
 
             const nombre = document.getElementById("nombre").value;
             const correo = document.getElementById("correo").value;
+            const telefono = document.getElementById("telefono").value;
+            const ubicacion = document.getElementById("ubicacion").value;
+            const edad = document.getElementById("edad").value;
+            const sexo = document.querySelector('input[name="sexo"]:checked')?.value;
             const intereses = Array.from(document.querySelectorAll(".interes:checked")).map(el => el.value);
 
-            if (nombre && correo) {
-                await addDoc(collection(db, "fans"), { nombre, correo, intereses, uid: user.uid });
+            if (nombre && correo && telefono && ubicacion && edad && sexo) {
+                await addDoc(collection(db, "fans"), { nombre, correo, telefono, ubicacion, edad, sexo, intereses, uid: user.uid });
                 fanForm.reset();
                 cargarFans(user.uid);
             }
@@ -120,11 +136,18 @@
             const q = query(collection(db, "fans"), where("uid", "==", userId));
             const querySnapshot = await getDocs(q);
             querySnapshot.forEach((doc) => {
-                const { nombre, correo, intereses } = doc.data();
+                const { nombre, correo, telefono, ubicacion, edad, sexo, intereses } = doc.data();
                 const li = document.createElement("li");
                 li.classList.add("p-2", "bg-gray-700", "rounded", "mb-2");
-                li.innerHTML = `<strong>${nombre}</strong> - ${correo} <br> 🏷️ ${intereses.join(", ")}
-                                <button class="bg-red-500 p-1 rounded text-sm" onclick="eliminarFan('${doc.id}')">Eliminar</button>`;
+                li.innerHTML = `
+                    <strong>${nombre}</strong> - ${correo} <br>
+                    📱 Teléfono: ${telefono} <br>
+                    📍 Ubicación: ${ubicacion} <br>
+                    🎂 Edad: ${edad} <br>
+                    🧑 Sexo: ${sexo} <br>
+                    🏷️ Intereses: ${intereses.join(", ")}
+                    <button class="bg-red-500 p-1 rounded text-sm" onclick="eliminarFan('${doc.id}')">Eliminar</button>
+                `;
                 listaFans.appendChild(li);
             });
         }
