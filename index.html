@@ -4,216 +4,177 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Fans</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Importar Chart.js -->
-    <style>
-        /* Diseño limpio y ordenado */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f9fafb;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            width: 80%;
-            margin: 20px auto;
-        }
-        .card {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            margin-bottom: 10px;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-        .btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-        }
-        .btn:hover {
-            background-color: #45a049;
-        }
-        .stats-card {
-            background-color: #e5e7eb;
-            padding: 20px;
-            border-radius: 8px;
-        }
-        .stats-container {
-            margin-top: 20px;
-        }
-        /* Estilo para el gráfico */
-        canvas {
-            width: 70%;  /* Ancho del 70% */
-            height: 300px;  /* Altura de 300px */
-            margin: 0 auto;  /* Centrado */
-            display: block;
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-900 text-white p-4">
 
-<!-- Título de la página -->
-<h1 style="text-align: center; padding: 20px; background-color: #4CAF50; color: white;">Registro de Fans</h1>
-
-<div class="container">
-    <!-- Formulario de registro de fans -->
-    <div class="card">
-        <h2>Registrarse</h2>
-        <form id="registro-form">
-            <input type="text" id="nombre" placeholder="Nombre" required>
-            <input type="email" id="correo" placeholder="Correo Electrónico" required>
-            <input type="text" id="telefono" placeholder="Teléfono" required>
-            <input type="number" id="edad" placeholder="Edad" required>
-            <select id="sexo" required>
-                <option value="">Seleccionar Sexo</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Otro">Otro</option>
-            </select>
-            <input type="text" id="ubicacion" placeholder="Ubicación" required>
-            <button class="btn" type="submit">Registrarse</button>
-        </form>
+    <!-- Contenedor de inicio de sesión / registro -->
+    <div id="authContainer" class="max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-center mb-4">🔑 Acceso de Fans</h1>
+        <input type="email" id="authEmail" placeholder="Correo electrónico" class="w-full p-3 rounded bg-gray-700 text-white mb-4">
+        <input type="password" id="authPassword" placeholder="Contraseña" class="w-full p-3 rounded bg-gray-700 text-white mb-4">
+        <button id="loginBtn" class="w-full bg-green-500 p-3 rounded-lg hover:bg-green-600">Iniciar Sesión</button>
+        <button id="registerBtn" class="w-full bg-blue-500 p-3 rounded-lg hover:bg-blue-600 mt-2">Registrarse</button>
     </div>
 
-    <!-- Contenedor para estadísticas visuales -->
-    <div class="stats-container">
-        <div class="stats-card">
-            <h2>📊 Estadísticas</h2>
-            <!-- Gráfico de estadísticas -->
-            <canvas id="estadisticasChart"></canvas>
+    <!-- Contenedor principal de la app (oculto por defecto) -->
+    <div id="appContainer" class="hidden max-w-lg mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold text-center mb-4">📋 Lista de Fans</h1>
+        <button id="logoutBtn" class="bg-red-500 p-3 rounded-lg w-full mb-4">Cerrar Sesión</button>
+
+        <div class="text-center mb-4">
+            <h3 class="text-lg">Número de Fans Registrados: <span id="totalFans">0</span></h3>
         </div>
+
+        <form id="fanForm" class="space-y-4">
+            <input type="text" id="nombre" placeholder="Nombre" class="w-full p-3 rounded bg-gray-700 text-white">
+            <input type="email" id="correo" placeholder="Correo electrónico" class="w-full p-3 rounded bg-gray-700 text-white">
+            <input type="text" id="telefono" placeholder="Teléfono (formato: 123-456-7890)" class="w-full p-3 rounded bg-gray-700 text-white">
+            <input type="text" id="ubicacion" placeholder="Ubicación" class="w-full p-3 rounded bg-gray-700 text-white">
+            <input type="number" id="edad" placeholder="Edad" class="w-full p-3 rounded bg-gray-700 text-white">
+
+            <fieldset class="mt-4">
+                <legend class="text-lg">Sexo:</legend>
+                <label><input type="radio" name="sexo" value="Masculino" class="sexo"> Masculino</label>
+                <label><input type="radio" name="sexo" value="Femenino" class="sexo"> Femenino</label>
+                <label><input type="radio" name="sexo" value="Otro" class="sexo"> Otro</label>
+            </fieldset>
+            
+            <fieldset class="mt-4">
+                <legend class="text-lg">Intereses:</legend>
+                <label><input type="checkbox" value="Merch" class="interes"> Merch</label>
+                <label><input type="checkbox" value="Descuentos" class="interes"> Descuentos</label>
+                <label><input type="checkbox" value="Eventos VIP" class="interes"> Eventos VIP</label>
+            </fieldset>
+
+            <button type="submit" class="w-full bg-blue-500 p-3 rounded-lg hover:bg-blue-600">Registrar</button>
+        </form>
+
+        <h2 class="text-xl font-bold mt-6">📜 Fans Registrados</h2>
+        <ul id="listaFans" class="mt-4"></ul>
     </div>
-</div>
 
-<script>
-    // Configuración de Firebase
-    const firebaseConfig = {
-        apiKey: "AIzaSyBCunx3qWVfoYj_8Sydwo9uWKLq0DdOj2M",
-        authDomain: "lista-de-fans.firebaseapp.com",
-        projectId: "lista-de-fans",
-        storageBucket: "lista-de-fans.appspot.com",
-        messagingSenderId: "842938427785",
-        appId: "1:842938427785:web:54c0d314b6d18c8eb29958",
-        measurementId: "G-MKXYZLPYF5"
-    };
-    
-    // Inicializa Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    
-    // Función para registrar usuarios
-    document.getElementById("registro-form").addEventListener("submit", function (event) {
-        event.preventDefault();
-        
-        const nombre = document.getElementById("nombre").value;
-        const correo = document.getElementById("correo").value;
-        const telefono = document.getElementById("telefono").value;
-        const edad = document.getElementById("edad").value;
-        const sexo = document.getElementById("sexo").value;
-        const ubicacion = document.getElementById("ubicacion").value;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 
-        // Validación del teléfono (al menos 10 dígitos)
-        if (telefono.length < 10) {
-            Swal.fire("Error", "El teléfono no es válido.", "error");
-            return;
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCunx3qWVfoYj_8Sydwo9uWKLq0DdOj2M",
+            authDomain: "lista-de-fans.firebaseapp.com",
+            projectId: "lista-de-fans",
+            storageBucket: "lista-de-fans.firebasestorage.app",
+            messagingSenderId: "842938427785",
+            appId: "1:842938427785:web:54c0d314b6d18c8eb29958",
+            measurementId: "G-MKXYZLPYF5"
+        };
 
-        // Guardar en Firestore
-        db.collection("fans").add({
-            nombre,
-            correo,
-            telefono,
-            edad,
-            sexo,
-            ubicacion
-        })
-        .then(() => {
-            Swal.fire("Éxito", "¡Te has registrado correctamente!", "success");
-            mostrarEstadisticas(); // Mostrar estadísticas
-            document.getElementById("registro-form").reset();
-        })
-        .catch((error) => {
-            console.error("Error al registrar: ", error);
-        });
-    });
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth();
 
-    // Función para mostrar estadísticas con Chart.js
-    async function mostrarEstadisticas() {
-        const fanRef = db.collection("fans");
-        const snapshot = await fanRef.get();
-        const fans = snapshot.docs.map(doc => doc.data());
+        const authContainer = document.getElementById("authContainer");
+        const appContainer = document.getElementById("appContainer");
+        const fanForm = document.getElementById("fanForm");
+        const listaFans = document.getElementById("listaFans");
+        const totalFans = document.getElementById("totalFans");
 
-        const totalFans = fans.length;
-        let fansPorUbicacion = {};
-        let fansPorEdad = {};
+        const loginBtn = document.getElementById("loginBtn");
+        const registerBtn = document.getElementById("registerBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
 
-        // Calcular estadísticas por ubicación
-        fans.forEach(fan => {
-            const ubicacion = fan.ubicacion;
-            fansPorUbicacion[ubicacion] = (fansPorUbicacion[ubicacion] || 0) + 1;
+        loginBtn.addEventListener("click", () => {
+            const email = document.getElementById("authEmail").value;
+            const password = document.getElementById("authPassword").value;
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => console.log("Sesión iniciada"))
+                .catch(err => alert("Error: " + err.message));
         });
 
-        // Calcular estadísticas por edad
-        fans.forEach(fan => {
-            const edad = fan.edad;
-            fansPorEdad[edad] = (fansPorEdad[edad] || 0) + 1;
+        registerBtn.addEventListener("click", () => {
+            const email = document.getElementById("authEmail").value;
+            const password = document.getElementById("authPassword").value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(() => alert("Registro exitoso, ahora inicia sesión"))
+                .catch(err => alert("Error: " + err.message));
         });
 
-        // Mostrar las estadísticas visualmente
-        const ubicaciones = Object.keys(fansPorUbicacion);
-        const edades = Object.keys(fansPorEdad);
-        
-        // Crear los gráficos con Chart.js
-        const ctx = document.getElementById('estadisticasChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',  // Gráfico de barras
-            data: {
-                labels: [...ubicaciones, ...edades], // Unimos las ubicaciones y edades
-                datasets: [{
-                    label: 'Fans por Ubicación y Edad',
-                    data: [...Object.values(fansPorUbicacion), ...Object.values(fansPorEdad)],
-                    backgroundColor: '#4CAF50',
-                    borderColor: '#388E3C',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+        logoutBtn.addEventListener("click", () => {
+            signOut(auth);
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // Mostrar la app cuando el usuario está autenticado
+                authContainer.classList.add("hidden");
+                appContainer.classList.remove("hidden");
+                cargarFans(user.uid);
+            } else {
+                // Mostrar el formulario de autenticación si no hay usuario
+                authContainer.classList.remove("hidden");
+                appContainer.classList.add("hidden");
             }
         });
 
-        // Mostrar estadísticas básicas
-        document.getElementById("estadisticasTotal").innerText = `Total de Fans: ${totalFans}`;
-        document.getElementById("estadisticasUbicacion").innerText = `Fans por Ubicación: ${JSON.stringify(fansPorUbicacion)}`;
-        document.getElementById("estadisticasEdad").innerText = `Fans por Edad: ${JSON.stringify(fansPorEdad)}`;
-    }
+        fanForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return alert("Debes iniciar sesión");
 
-    // Llamar a la función de estadísticas al cargar la app
-    mostrarEstadisticas();
-</script>
+            const nombre = document.getElementById("nombre").value;
+            const correo = document.getElementById("correo").value;
+            const telefono = document.getElementById("telefono").value;
+            const ubicacion = document.getElementById("ubicacion").value;
+            const edad = document.getElementById("edad").value;
+            const sexo = document.querySelector('input[name="sexo"]:checked')?.value;
+            const intereses = Array.from(document.querySelectorAll(".interes:checked")).map(el => el.value);
+
+            if (!validarTelefono(telefono)) {
+                return alert("Número de teléfono no válido. Debe tener el formato 123-456-7890.");
+            }
+
+            if (nombre && correo && telefono && ubicacion && edad && sexo) {
+                await addDoc(collection(db, "fans"), { nombre, correo, telefono, ubicacion, edad, sexo, intereses, uid: user.uid });
+                fanForm.reset();
+                cargarFans(user.uid);
+            }
+        });
+
+        function validarTelefono(telefono) {
+            const regex = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/;
+            return regex.test(telefono);
+        }
+
+        async function cargarFans(userId) {
+            listaFans.innerHTML = "";
+            const q = query(collection(db, "fans"), where("uid", "==", userId));
+            const querySnapshot = await getDocs(q);
+            totalFans.textContent = querySnapshot.size; // Mostrar el número de fans registrados
+            querySnapshot.forEach((doc) => {
+                const { nombre, correo, telefono, ubicacion, edad, sexo, intereses } = doc.data();
+                const li = document.createElement("li");
+                li.classList.add("p-4", "bg-gray-700", "rounded-lg", "mb-4");
+                li.innerHTML = `
+                    <strong>${nombre}</strong> - ${correo} <br>
+                    📱 Teléfono: ${telefono} <br>
+                    📍 Ubicación: ${ubicacion} <br>
+                    🎂 Edad: ${edad} <br>
+                    🧑 Sexo: ${sexo} <br>
+                    🏷️ Intereses: ${intereses.join(", ")}
+                    <button class="bg-red-500 p-2 rounded-lg mt-2 text-sm" onclick="eliminarFan('${doc.id}')">Eliminar</button>
+                `;
+                listaFans.appendChild(li);
+            });
+        }
+
+        async function eliminarFan(id) {
+            await deleteDoc(doc(db, "fans", id));
+            cargarFans(auth.currentUser.uid);
+        }
+
+        window.eliminarFan = eliminarFan;
+    </script>
 
 </body>
 </html>
+
