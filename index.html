@@ -10,7 +10,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* CSS básico para la interfaz */
+        /* Diseño anterior más limpio y ordenado */
         body {
             font-family: Arial, sans-serif;
             background-color: #f9fafb;
@@ -55,11 +55,16 @@
             padding: 20px;
             border-radius: 8px;
         }
+        /* Estilo para la tarjeta de estadísticas */
+        .stats-container {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- Formulario de registro de fans -->
     <div class="card">
         <h2>Registrarse</h2>
         <form id="registro-form">
@@ -78,16 +83,16 @@
         </form>
     </div>
 
-    <div class="stats-card">
-        <h2>📊 Estadísticas</h2>
-        <p id="estadisticasTotal"></p>
-        <p id="estadisticasUbicacion"></p>
-        <p id="estadisticasEdad"></p>
+    <!-- Contenedor de estadísticas -->
+    <div class="stats-container">
+        <div class="stats-card">
+            <h2>📊 Estadísticas</h2>
+            <p id="estadisticasTotal"></p>
+            <p id="estadisticasUbicacion"></p>
+            <p id="estadisticasEdad"></p>
+        </div>
     </div>
 </div>
-
-<script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js"></script>
 
 <script>
     // Configuración de Firebase
@@ -116,6 +121,7 @@
         const sexo = document.getElementById("sexo").value;
         const ubicacion = document.getElementById("ubicacion").value;
 
+        // Validación del teléfono (al menos 10 dígitos)
         if (telefono.length < 10) {
             Swal.fire("Error", "El teléfono no es válido.", "error");
             return;
@@ -174,3 +180,4 @@
 
 </body>
 </html>
+
